@@ -10,6 +10,8 @@
         f.request_remark as 'requestRemark',u.head_url as 'headUrl'
         from tb_friend_request f join tb_user u on f.from_id = u.id
         <where>
+            1 = 1
+            and f.to_id = #{userId} and
             <foreach collection="list" item="item" index="index" separator="or">
                 f.from_id = #{item.fromId}
             </foreach>
