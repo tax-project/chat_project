@@ -47,8 +47,9 @@ public interface IFriendService {
     *  修改对好友的备注
     * @param remark 好友备注
     * @param id  好友的id
+    * @param fromId 自己的用户id
     */
-   void updateFriendRemark (String remark, Long id);
+   void updateFriendRemark (String remark, Long fromId, Long id);
 
    /**
     *  查询一条数据

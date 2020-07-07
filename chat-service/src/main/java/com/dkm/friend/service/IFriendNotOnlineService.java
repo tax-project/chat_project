@@ -1,5 +1,6 @@
 package com.dkm.friend.service;
 
+import com.dkm.friend.entity.FriendNotOnline;
 import com.dkm.friend.entity.vo.FriendNotOnlineVo;
 
 import java.util.List;
@@ -30,6 +31,12 @@ public interface IFriendNotOnlineService {
     * @param list id集合
     */
    void deleteLook (List<Long> list);
+
+   /**
+    *  批量增加未在线消息
+    * @param list 未在线消息参数
+    */
+   void allInsertNotOnlineInfo (List<FriendNotOnline> list);
 
    /**
     * 删除所有已读的消息

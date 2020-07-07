@@ -19,9 +19,11 @@ import com.dkm.jwt.contain.LocalUser;
 import com.dkm.jwt.entity.UserLoginQuery;
 import com.dkm.user.entity.User;
 import com.dkm.user.service.IUserService;
+import com.dkm.utils.DateUtil;
 import com.dkm.utils.IdGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.cache.CacheKey;
+import org.aspectj.weaver.ast.Var;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,10 +72,6 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
     * @param vo
     */
    @Override
-   @Caching(evict = {
-         @CacheEvict(value = "friendAll", key = "'friendAll' + #vo.getFromId()"),
-         @CacheEvict(value = "friendAll", key = "'friendAll' + #vo.getToId()")
-   })
    public void insertFriend(FriendVo vo) {
 
       try {
@@ -105,6 +103,8 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
          friend.setCreateDate(LocalDateTime.now());
          friend.setFromId(vo.getFromId());
          friend.setToId(vo.getToId());
+         friend.setIsAddStatus(0);
+
 
          int insert = baseMapper.insert(friend);
 
@@ -117,6 +117,7 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
          friend.setStatus(0);
          friend.setFromId(vo.getToId());
          friend.setToId(vo.getFromId());
+         friend.setIsAddStatus(1);
 
          int i = baseMapper.insert(friend);
 
@@ -135,10 +136,6 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
     * @param toId 要删除的人的id
     */
    @Override
-   @Caching(evict = {
-         @CacheEvict(value = "friendAll", key = "'friendAll' + #fromId"),
-         @CacheEvict(value = "friendAll", key = "'friendAll' + #toId")
-   })
    public void deleteFriend(Long fromId, Long toId) {
 
       //先删除好友表里面的好友
@@ -173,7 +170,6 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
     * @return 所有好友信息
     */
    @Override
-   @Cacheable(value = "friendAll", key = "'friendAll' + #userId")
    public List<FriendAllListVo> listAllFriend(Long userId) {
 
       LambdaQueryWrapper<Friend> wrapper = new LambdaQueryWrapper<Friend>()
@@ -197,6 +193,9 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
 
       return friendAllListVos.stream().map(friendAllListVo -> {
          friendAllListVo.setRemark(friendMap.get(friendAllListVo.getToId()).getRemark());
+         String time = DateUtil.formatDateTime(friendMap.get(friendAllListVo.getToId()).getCreateDate());
+         friendAllListVo.setTime(time);
+         friendAllListVo.setIsAddStatus(friendMap.get(friendAllListVo.getToId()).getIsAddStatus());
          return friendAllListVo;
       }).collect(Collectors.toList());
    }
@@ -240,7 +239,7 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
     * @param id  好友的id
     */
    @Override
-   public void updateFriendRemark(String remark, Long id) {
+   public void updateFriendRemark(String remark, Long fromId, Long id) {
       //登录人信息
       UserLoginQuery loginQuery = localUser.getUser();
 

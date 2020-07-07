@@ -146,13 +146,11 @@ public class UserController {
    @GetMapping("/updateHeardUrl")
    @CrossOrigin
    @CheckToken
-   public ResultVo updateHeardUrl (@RequestParam("heardUrl") String heardUrl) {
-      userService.updateHeardUrl(heardUrl);
-
-      ResultVo vo = new ResultVo();
-      vo.setResult("ok");
-
-      return vo;
+   public void updateHeardUrl (@RequestParam("heardUrl") String heardUrl) {
+      if (StringUtils.isBlank(heardUrl)) {
+         throw new ApplicationException(CodeType.PARAMETER_ERROR);
+      }
+      Long aLong = userService.updateHeardUrl(heardUrl);
    }
 
 

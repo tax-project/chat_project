@@ -50,18 +50,13 @@ public class ManyChatController {
    @CrossOrigin
    @CheckToken
    @PostMapping("/insertManyChat")
-   public ResultVo insertManyChat (@RequestBody ManyChatVo vo) {
+   public void insertManyChat (@RequestBody ManyChatVo vo) {
 
       if (StringUtils.isBlank(vo.getManyName()) || StringUtils.isBlank(vo.getManyHeadUrl())) {
          throw new ApplicationException(CodeType.PARAMETER_ERROR, "群聊名字不能为空");
       }
 
       Long aLong = manyChatService.insertManyChat(vo);
-
-      ResultVo resultVo = new ResultVo();
-      resultVo.setResult("ok");
-
-      return resultVo;
    }
 
 

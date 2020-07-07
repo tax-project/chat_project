@@ -62,8 +62,9 @@ public interface IUserService {
    /**
     *  修改头像
     * @param heardUrl 头像地址
+    * @return 用户id
     */
-   void updateHeardUrl (String heardUrl);
+   Long updateHeardUrl (String heardUrl);
 
    /**
     *  退出登录

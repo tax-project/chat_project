@@ -1,8 +1,10 @@
 package com.dkm.manyChat.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dkm.config.RedisConfig;
 import com.dkm.constanct.CodeType;
+import com.dkm.entity.websocket.MsgInfo;
 import com.dkm.exception.ApplicationException;
 import com.dkm.file.service.IFileService;
 import com.dkm.file.utils.FileVo;
@@ -17,6 +19,7 @@ import com.dkm.manyChat.service.IManyChatInfoService;
 import com.dkm.manyChat.service.IManyChatService;
 import com.dkm.utils.IdGenerator;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
@@ -52,6 +55,9 @@ public class ManyChatServiceImpl extends ServiceImpl<ManyChatMapper, ManyChat> i
 
    @Autowired
    private IManyChatInfoService manyChatInfoService;
+
+   @Autowired
+   private RabbitTemplate rabbitTemplate;
 
    @Override
    @CacheEvict(value = "manyChat", key = "'manyChat' + #result")
@@ -96,6 +102,16 @@ public class ManyChatServiceImpl extends ServiceImpl<ManyChatMapper, ManyChat> i
       list.add(infoVo);
 
       manyChatInfoService.insertAllUser(list);
+
+      //通知客户端收到好友申请的通知
+      MsgInfo msgInfo = new MsgInfo();
+      msgInfo.setType(104);
+      msgInfo.setFromId(user.getId());
+      msgInfo.setToIdList(vo.getList());
+      msgInfo.setMsg("成功建立群聊,快聊天吧~");
+
+      //将好友申请同步发送给好友
+      rabbitTemplate.convertAndSend("chat_msg_fanoutExchange","", JSON.toJSONString(msgInfo));
 
       return user.getId();
    }

@@ -3,6 +3,7 @@ package com.dkm.websocket.mq;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.dkm.constanct.CodeType;
+import com.dkm.entity.vo.Msg;
 import com.dkm.entity.websocket.MsgInfo;
 import com.dkm.exception.ApplicationException;
 import com.dkm.utils.StringUtils;
@@ -10,7 +11,6 @@ import com.dkm.websocket.entity.SendMsg;
 import com.dkm.websocket.utils.ChannelManyGroups;
 import com.dkm.websocket.utils.GroupUtils;
 import com.dkm.websocket.utils.RSAUtils;
-import com.sun.org.apache.bcel.internal.generic.NEW;
 import io.netty.channel.Channel;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import lombok.extern.slf4j.Slf4j;
@@ -26,9 +26,6 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.security.interfaces.RSAPublicKey;
-import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -126,6 +123,7 @@ public class RabbitMqListener {
          //群聊消息
          //去redis中取出所有设备ID，找到channel通道的集合
          List<Channel> channels = new ArrayList<>();
+         List<MsgInfo> list = new ArrayList<>();
          //去redis中找设备id
          for (Long id : msgInfo.getToIdList()) {
             String cid = (String) redisTemplate.opsForValue().get(id);
@@ -134,8 +132,18 @@ public class RabbitMqListener {
                Channel channel = groupUtils.getChannel(cid);
                if (channel != null) {
                   channels.add(channel);
+               } else {
+                  list.add(msgInfo);
                }
             }
+         }
+
+         if (list.size() == 0) {
+            //群聊有人未在线
+            Msg result = new Msg();
+            result.setList(list);
+            log.info("群聊有人未找到对应的channel,将消息通过mq发送存入数据库");
+            rabbitTemplate.convertAndSend("chat_ontManyChat_info",JSON.toJSONString(result));
          }
 
          //将建立群聊的channel管理起来
@@ -146,12 +154,6 @@ public class RabbitMqListener {
 
          //将消息群发
          log.info("消息群发:" +sendMsg);
-//         String encrypt = null;
-//         try {
-//            encrypt = rsaUtils.encrypt(JSON.toJSONString(msgInfo), myPublicKey);
-//         } catch (Exception e) {
-//            e.printStackTrace();
-//         }
          channelManyGroups.broadcast(new TextWebSocketFrame(JSON.toJSONString(sendMsg)));
 
 
@@ -290,6 +292,54 @@ public class RabbitMqListener {
 
          }
 
+      }
+
+
+
+      if (msgInfo.getType() == 104) {
+         //建立群聊通知
+
+         //去redis中取出所有设备ID，找到channel通道的集合
+         List<Channel> channels = new ArrayList<>();
+         List<MsgInfo> list = new ArrayList<>();
+         //去redis中找设备id
+         for (Long id : msgInfo.getToIdList()) {
+            String cid = (String) redisTemplate.opsForValue().get(id);
+            //将除了自己以外的所有群聊人员都发消息
+            if (StringUtils.isNotBlank(cid) && !cid.equals(msgInfo.getCid())) {
+               Channel channel = groupUtils.getChannel(cid);
+               if (channel != null) {
+                  channels.add(channel);
+               } else {
+                  list.add(msgInfo);
+               }
+            }
+         }
+
+         if (list.size() == 0) {
+            //群聊有人未在线
+            Msg result = new Msg();
+            result.setList(list);
+            log.info("创建群聊时未找到对应的channel,将消息通过mq发送存入数据库");
+            rabbitTemplate.convertAndSend("chat_ontManyChat_info",JSON.toJSONString(result));
+         }
+
+         //将建立群聊的channel管理起来
+         channelManyGroups.addList(channels);
+
+         SendMsg sendMsg = new SendMsg();
+         BeanUtils.copyProperties(msgInfo,sendMsg);
+
+         //将消息群发
+         log.info("消息群发:" +sendMsg);
+         channelManyGroups.broadcast(new TextWebSocketFrame(JSON.toJSONString(sendMsg)));
+
+
+         try {
+            mqChannel.basicAck(deliveryTag,true);
+         } catch (IOException e) {
+            e.printStackTrace();
+         }
 
       }
 

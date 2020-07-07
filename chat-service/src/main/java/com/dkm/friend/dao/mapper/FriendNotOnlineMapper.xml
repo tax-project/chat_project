@@ -11,6 +11,14 @@
         </foreach>
     </delete>
 
-
+    <insert id="allInsertNotOnlineInfo" parameterType="com.dkm.friend.entity.FriendNotOnline">
+        insert into tb_friend_online(id,from_id,to_id,content,create_date,type,
+        is_look,cid,many_chat_id,msg_type,send_time)
+        <foreach collection="list" item="item" index="index" separator="union all">
+            select #{item.id},#{item.fromId},#{item.toId},#{item.content}
+            ,#{item.createDate},#{item.type},#{item.cid},#{item.manyChatId}
+            ,#{item.msgType},#{item.sendTime},#{item.isLook}
+        </foreach>
+    </insert>
 
 </mapper>

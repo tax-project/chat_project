@@ -33,6 +33,8 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -281,7 +283,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     * @param heardUrl 头像地址
     */
    @Override
-   public void updateHeardUrl(String heardUrl) {
+   public Long updateHeardUrl(String heardUrl) {
 
       UserLoginQuery query = localUser.getUser();
 
@@ -294,6 +296,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
       if (update <= 0) {
          throw new ApplicationException(CodeType.SERVICE_ERROR, "修改头像失败");
       }
+
+      return query.getId();
    }
 
 

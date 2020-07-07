@@ -38,6 +38,8 @@ public class MsgInfo {
     * 100--强制下线
     * 101-申请添加好友
     * 102-通知退出登录  移除连接
+    * 103-取消前端小红点
+    * 104-建立群聊通知
     */
    private Integer type;
 

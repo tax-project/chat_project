@@ -22,4 +22,9 @@ public class OtherMqConfig {
    public Queue getNotOnlineQueue () {
       return new Queue("chat_msg_not_online_queue",false);
    }
+
+   @Bean
+   public Queue getNotManyQueue () {
+      return new Queue("chat_ontManyChat_info", false);
+   }
 }

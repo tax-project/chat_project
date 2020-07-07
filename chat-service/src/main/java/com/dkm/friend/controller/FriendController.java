@@ -98,7 +98,8 @@ public class FriendController {
          throw new ApplicationException(CodeType.PARAMETER_ERROR, "参数不能为空");
       }
 
-      friendService.updateFriendRemark(remark,id);
+      UserLoginQuery user = localUser.getUser();
+      friendService.updateFriendRemark(remark, user.getId(), id);
 
       ResultVo vo = new ResultVo();
       vo.setResult("ok");

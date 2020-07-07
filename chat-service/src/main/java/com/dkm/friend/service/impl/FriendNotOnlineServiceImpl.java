@@ -103,6 +103,16 @@ public class FriendNotOnlineServiceImpl extends ServiceImpl<FriendNotOnlineMappe
       }
    }
 
+   @Override
+   public void allInsertNotOnlineInfo(List<FriendNotOnline> list) {
+      //批量增加群聊未在线消息
+      Integer integer = baseMapper.allInsertNotOnlineInfo(list);
+
+      if (integer <= 0) {
+         throw new ApplicationException(CodeType.SERVICE_ERROR, "批量增加失败");
+      }
+   }
+
 
    /**
     * 删除所有已读的消息

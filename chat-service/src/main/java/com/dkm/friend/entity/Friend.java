@@ -47,4 +47,16 @@ public class Friend extends Model<Friend> {
     * 备注
     */
    private String remark;
+
+   /**
+    *  0--正常
+    *  1--置顶
+    */
+   private Integer isTop;
+
+   /**
+    * 0--我加他
+    * 1--他加我
+    */
+   private Integer isAddStatus;
 }
