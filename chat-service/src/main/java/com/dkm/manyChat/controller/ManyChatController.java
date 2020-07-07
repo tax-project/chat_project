@@ -2,8 +2,11 @@ package com.dkm.manyChat.controller;
 
 import com.dkm.constanct.CodeType;
 import com.dkm.exception.ApplicationException;
+import com.dkm.jwt.contain.LocalUser;
+import com.dkm.jwt.entity.UserLoginQuery;
 import com.dkm.jwt.islogin.CheckToken;
 import com.dkm.manyChat.entity.ManyChat;
+import com.dkm.manyChat.entity.vo.ManyChatListVo;
 import com.dkm.manyChat.entity.vo.ManyChatResultVo;
 import com.dkm.manyChat.entity.vo.ManyChatVo;
 import com.dkm.manyChat.service.IManyChatService;
@@ -19,6 +22,8 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * @author qf
  * @date 2020/5/16
@@ -32,6 +37,9 @@ public class ManyChatController {
 
    @Autowired
    private IManyChatService manyChatService;
+
+   @Autowired
+   private LocalUser localUser;
 
    @ApiOperation(value = "建立群聊", notes = "建立群聊")
    @ApiImplicitParams({
@@ -48,7 +56,7 @@ public class ManyChatController {
          throw new ApplicationException(CodeType.PARAMETER_ERROR, "群聊名字不能为空");
       }
 
-      manyChatService.insertManyChat(vo);
+      Long aLong = manyChatService.insertManyChat(vo);
 
       ResultVo resultVo = new ResultVo();
       resultVo.setResult("ok");
@@ -76,5 +84,14 @@ public class ManyChatController {
       vo.setCreateDate(DateUtil.formatDateTime(manyChat.getCreateDate()));
 
       return vo;
+   }
+
+   @ApiOperation(value = "查询我的群聊", notes = "查询我的群聊")
+   @CrossOrigin
+   @CheckToken
+   @GetMapping("/queryManyChatList")
+   public List<ManyChatListVo> queryManyChatList () {
+      UserLoginQuery user = localUser.getUser();
+      return manyChatService.queryManyChatList(user.getId());
    }
 }

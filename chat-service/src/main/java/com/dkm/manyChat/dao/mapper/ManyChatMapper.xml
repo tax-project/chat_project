@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.dkm.manyChat.dao.ManyChatMapper">
+
+
+   <select id="queryManyChatList" resultType="com.dkm.manyChat.entity.vo.ManyChatListVo" parameterType="Long">
+       select a.id, a.head_url, a.many_name, a.many_remark
+       from tb_many_chat a
+       join tb_many_chat_info b
+       on a.id = b.manyChatId where user_id = #{userId}
+   </select>
+
+
+</mapper>

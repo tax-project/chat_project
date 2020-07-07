@@ -23,15 +23,17 @@ public interface IFriendService {
 
    /**
     *  删除好友
+    * @param fromId 自己的id
     * @param toId 要删除的人的id
     */
-   void deleteFriend (Long toId);
+   void deleteFriend (Long fromId,Long toId);
 
    /**
-    * 展示全部好友
-    * @return 所有好友信息
+    *  展示全部好友
+    * @param userId 用户id
+    * @return
     */
-   List<FriendAllListVo> listAllFriend ();
+   List<FriendAllListVo> listAllFriend (Long userId);
 
 
    /**

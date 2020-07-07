@@ -21,4 +21,6 @@ public interface ManyChatInfoMapper extends IBaseMapper<ManyChatInfo> {
     * @return 返回增加结果
     */
    Integer insertAllUser(List<ManyChatInfoVo> list);
+
+
 }

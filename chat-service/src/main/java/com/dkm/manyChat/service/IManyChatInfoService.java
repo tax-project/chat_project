@@ -24,4 +24,6 @@ public interface IManyChatInfoService {
     * @return 所有用户id
     */
    List<ManyChatInfo> getManyChatInfoList(Long manyChatId);
+
+
 }

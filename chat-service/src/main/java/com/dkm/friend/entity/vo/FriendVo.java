@@ -2,6 +2,7 @@ package com.dkm.friend.entity.vo;
 
 import lombok.Data;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
@@ -10,7 +11,7 @@ import java.time.LocalDateTime;
  * @vesion 1.0
  **/
 @Data
-public class FriendVo {
+public class FriendVo implements Serializable {
 
    /**
     * 谁的账号

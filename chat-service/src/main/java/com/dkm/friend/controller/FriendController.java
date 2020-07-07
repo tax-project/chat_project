@@ -7,6 +7,8 @@ import com.dkm.friend.entity.bo.FriendBo;
 import com.dkm.friend.entity.vo.FriendAllListVo;
 import com.dkm.friend.entity.vo.FriendRequestInfoVo;
 import com.dkm.friend.service.IFriendService;
+import com.dkm.jwt.contain.LocalUser;
+import com.dkm.jwt.entity.UserLoginQuery;
 import com.dkm.jwt.islogin.CheckToken;
 import com.dkm.user.entity.vo.ResultVo;
 import io.swagger.annotations.Api;
@@ -34,13 +36,17 @@ public class FriendController {
    @Autowired
    private IFriendService friendService;
 
+   @Autowired
+   private LocalUser localUser;
+
 
    @ApiOperation(value = "展示全部好友", notes = "展示全部好友")
    @GetMapping("/listAllFriend")
    @CrossOrigin
    @CheckToken
    public List<FriendAllListVo> listAllFriend () {
-      return friendService.listAllFriend();
+      UserLoginQuery user = localUser.getUser();
+      return friendService.listAllFriend(user.getId());
    }
 
 
@@ -54,8 +60,8 @@ public class FriendController {
       if (toId == null) {
          throw new ApplicationException(CodeType.PARAMETER_ERROR, "参数不能为空");
       }
-
-      friendService.deleteFriend(toId);
+      UserLoginQuery user = localUser.getUser();
+      friendService.deleteFriend(user.getId(),toId);
 
       ResultVo resultVo = new ResultVo();
       resultVo.setResult("ok");

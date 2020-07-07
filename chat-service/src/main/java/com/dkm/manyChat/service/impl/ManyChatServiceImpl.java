@@ -11,6 +11,7 @@ import com.dkm.jwt.entity.UserLoginQuery;
 import com.dkm.manyChat.dao.ManyChatMapper;
 import com.dkm.manyChat.entity.ManyChat;
 import com.dkm.manyChat.entity.vo.ManyChatInfoVo;
+import com.dkm.manyChat.entity.vo.ManyChatListVo;
 import com.dkm.manyChat.entity.vo.ManyChatVo;
 import com.dkm.manyChat.service.IManyChatInfoService;
 import com.dkm.manyChat.service.IManyChatService;
@@ -18,6 +19,8 @@ import com.dkm.utils.IdGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,7 +54,8 @@ public class ManyChatServiceImpl extends ServiceImpl<ManyChatMapper, ManyChat> i
    private IManyChatInfoService manyChatInfoService;
 
    @Override
-   public void insertManyChat(ManyChatVo vo) {
+   @CacheEvict(value = "manyChat", key = "'manyChat' + #result")
+   public Long insertManyChat(ManyChatVo vo) {
       ManyChat manyChat = new ManyChat();
 
       //群聊id
@@ -93,10 +97,21 @@ public class ManyChatServiceImpl extends ServiceImpl<ManyChatMapper, ManyChat> i
 
       manyChatInfoService.insertAllUser(list);
 
+      return user.getId();
    }
 
    @Override
+   @Cacheable(value = "manyChatInfo", key = "'manyChatInfo' + #id")
    public ManyChat queryById(Long id) {
       return baseMapper.selectById(id);
    }
+
+   @Override
+   @Cacheable(value = "manyChat", key = "'manyChat' + #userId")
+   public List<ManyChatListVo> queryManyChatList(Long userId) {
+      //查询我的群聊
+      return baseMapper.queryManyChatList(userId);
+   }
+
+
 }

@@ -2,6 +2,7 @@ package com.dkm.manyChat.entity.vo;
 
 import lombok.Data;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -10,7 +11,7 @@ import java.util.List;
  * @vesion 1.0
  **/
 @Data
-public class ManyChatVo {
+public class ManyChatVo implements Serializable {
 
    /**
     * 群聊名字

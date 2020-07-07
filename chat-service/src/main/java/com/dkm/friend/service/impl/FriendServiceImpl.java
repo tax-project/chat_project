@@ -26,13 +26,17 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import springfox.documentation.annotations.Cacheable;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author qf
@@ -66,8 +70,11 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
     * @param vo
     */
    @Override
+   @Caching(evict = {
+         @CacheEvict(value = "friendAll", key = "'friendAll' + #vo.getFromId()"),
+         @CacheEvict(value = "friendAll", key = "'friendAll' + #vo.getToId()")
+   })
    public void insertFriend(FriendVo vo) {
-
 
       try {
          Boolean lock = redisConfig.redisLock(REDIS_LOCK);
@@ -128,13 +135,15 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
     * @param toId 要删除的人的id
     */
    @Override
-   public void deleteFriend(Long toId) {
-
-      UserLoginQuery user = localUser.getUser();
+   @Caching(evict = {
+         @CacheEvict(value = "friendAll", key = "'friendAll' + #fromId"),
+         @CacheEvict(value = "friendAll", key = "'friendAll' + #toId")
+   })
+   public void deleteFriend(Long fromId, Long toId) {
 
       //先删除好友表里面的好友
       LambdaQueryWrapper<Friend> wrapper = new LambdaQueryWrapper<Friend>()
-            .eq(Friend::getFromId,user.getId())
+            .eq(Friend::getFromId,fromId)
             .eq(Friend::getToId,toId);
 
       int delete = baseMapper.delete(wrapper);
@@ -145,7 +154,7 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
 
       LambdaQueryWrapper<Friend> lambdaQueryWrapper = new LambdaQueryWrapper<Friend>()
             .eq(Friend::getFromId,toId)
-            .eq(Friend::getToId,user.getId());
+            .eq(Friend::getToId,fromId);
 
       int delete1 = baseMapper.delete(lambdaQueryWrapper);
 
@@ -154,7 +163,7 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
       }
 
       //删除申请表中的信息
-      friendRequestService.deleteRequestInfo(user.getId(),toId);
+      friendRequestService.deleteRequestInfo(fromId,toId);
 
    }
 
@@ -164,11 +173,11 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
     * @return 所有好友信息
     */
    @Override
-   public List<FriendAllListVo> listAllFriend() {
-      UserLoginQuery user = localUser.getUser();
+   @Cacheable(value = "friendAll", key = "'friendAll' + #userId")
+   public List<FriendAllListVo> listAllFriend(Long userId) {
 
       LambdaQueryWrapper<Friend> wrapper = new LambdaQueryWrapper<Friend>()
-            .eq(Friend::getFromId,user.getId());
+            .eq(Friend::getFromId,userId);
 
       List<Friend> friendList = baseMapper.selectList(wrapper);
 
@@ -180,7 +189,16 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
       }
 
       //查询所有好友的信息
-      return userService.queryAllFriend(list);
+      List<FriendAllListVo> friendAllListVos = userService.queryAllFriend(list);
+
+      Map<Long, Friend> friendMap = friendList.stream().
+            collect(Collectors.toMap(Friend::getToId, friend
+                  -> friend));
+
+      return friendAllListVos.stream().map(friendAllListVo -> {
+         friendAllListVo.setRemark(friendMap.get(friendAllListVo.getToId()).getRemark());
+         return friendAllListVo;
+      }).collect(Collectors.toList());
    }
 
 
