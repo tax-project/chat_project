@@ -1,9 +1,11 @@
 package com.dkm.friend.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dkm.config.RedisConfig;
 import com.dkm.constanct.CodeType;
+import com.dkm.entity.vo.MsgFriends;
 import com.dkm.entity.websocket.MsgInfo;
 import com.dkm.exception.ApplicationException;
 import com.dkm.friend.dao.FriendMapper;
@@ -64,6 +66,9 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
 
    @Autowired
    private RedisConfig redisConfig;
+
+   @Autowired
+   private RabbitTemplate rabbitTemplate;
 
    private final String REDIS_LOCK = "REDIS::Lock:Chat::Friend";
 
@@ -128,6 +133,25 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
          redisConfig.deleteLock(REDIS_LOCK);
       }
 
+      //通过mq发送信息给好友
+      MsgInfo msgInfo = new MsgInfo();
+      msgInfo.setToId(vo.getFromId());
+      msgInfo.setMsg("我通过你的好友申请,快来和我聊天吧");
+      msgInfo.setMsgType(1);
+      msgInfo.setType(106);
+      msgInfo.setIsFriend(0);
+      msgInfo.setFromId(vo.getToId());
+      msgInfo.setToIdList(null);
+      msgInfo.setSendDate(DateUtil.formatDateTime(LocalDateTime.now()));
+
+      rabbitTemplate.convertAndSend("chat_msg_fanoutExchange","", JSON.toJSONString(msgInfo));
+      //备注
+
+      msgInfo.setToId(vo.getToId());
+      msgInfo.setMsg(vo.getRequestRemark());
+      msgInfo.setFromId(vo.getFromId());
+
+      rabbitTemplate.convertAndSend("chat_msg_fanoutExchange","", JSON.toJSONString(msgInfo));
 
    }
 
@@ -187,17 +211,21 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
       //查询所有好友的信息
       List<FriendAllListVo> friendAllListVos = userService.queryAllFriend(list);
 
+      if (list.size() == 0) {
+         return null;
+      }
+
       Map<Long, Friend> friendMap = friendList.stream().
             collect(Collectors.toMap(Friend::getToId, friend
                   -> friend));
 
-      return friendAllListVos.stream().map(friendAllListVo -> {
+      List<FriendAllListVo> collect = friendAllListVos.stream().map(friendAllListVo -> {
          friendAllListVo.setRemark(friendMap.get(friendAllListVo.getToId()).getRemark());
-         String time = DateUtil.formatDateTime(friendMap.get(friendAllListVo.getToId()).getCreateDate());
-         friendAllListVo.setTime(time);
-         friendAllListVo.setIsAddStatus(friendMap.get(friendAllListVo.getToId()).getIsAddStatus());
          return friendAllListVo;
       }).collect(Collectors.toList());
+
+
+      return collect;
    }
 
 

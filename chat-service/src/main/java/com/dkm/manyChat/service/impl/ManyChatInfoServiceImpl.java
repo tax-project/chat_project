@@ -5,11 +5,13 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dkm.constanct.CodeType;
 import com.dkm.exception.ApplicationException;
 import com.dkm.manyChat.dao.ManyChatInfoMapper;
+import com.dkm.manyChat.entity.ManyChat;
 import com.dkm.manyChat.entity.ManyChatInfo;
 import com.dkm.manyChat.entity.vo.ManyChatInfoVo;
 import com.dkm.manyChat.service.IManyChatInfoService;
 import com.sun.org.apache.bcel.internal.generic.NEW;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,5 +51,18 @@ public class ManyChatInfoServiceImpl extends ServiceImpl<ManyChatInfoMapper, Man
             .eq(ManyChatInfo::getManyChatId,manyChatId);
 
       return baseMapper.selectList(wrapper);
+   }
+
+   @Override
+   public void deleteManyChatInfo(Long userId, Long manyChatId) {
+      LambdaQueryWrapper<ManyChatInfo> wrapper = new LambdaQueryWrapper<ManyChatInfo>()
+            .eq(ManyChatInfo::getManyChatId, manyChatId)
+            .eq(ManyChatInfo::getUserId, userId);
+
+      int delete = baseMapper.delete(wrapper);
+
+      if (delete <= 0) {
+         throw new ApplicationException(CodeType.SERVICE_ERROR, "退出失败");
+      }
    }
 }

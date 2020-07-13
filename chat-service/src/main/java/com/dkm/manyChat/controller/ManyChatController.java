@@ -6,6 +6,7 @@ import com.dkm.jwt.contain.LocalUser;
 import com.dkm.jwt.entity.UserLoginQuery;
 import com.dkm.jwt.islogin.CheckToken;
 import com.dkm.manyChat.entity.ManyChat;
+import com.dkm.manyChat.entity.bo.ManyChatBo;
 import com.dkm.manyChat.entity.vo.ManyChatListVo;
 import com.dkm.manyChat.entity.vo.ManyChatResultVo;
 import com.dkm.manyChat.entity.vo.ManyChatVo;
@@ -56,7 +57,11 @@ public class ManyChatController {
          throw new ApplicationException(CodeType.PARAMETER_ERROR, "群聊名字不能为空");
       }
 
-      Long aLong = manyChatService.insertManyChat(vo);
+      if (vo.getList() == null || vo.getList().size() == 0) {
+         throw new ApplicationException(CodeType.PARAMETER_ERROR, "至少要两个人才能创建群聊");
+      }
+
+      manyChatService.insertManyChat(vo);
    }
 
 
@@ -88,5 +93,22 @@ public class ManyChatController {
    public List<ManyChatListVo> queryManyChatList () {
       UserLoginQuery user = localUser.getUser();
       return manyChatService.queryManyChatList(user.getId());
+   }
+
+   @ApiOperation(value = "添加人进群", notes = "添加人进群")
+   @CrossOrigin
+   @CheckToken
+   @PostMapping("/addManyChat")
+   public void addManyChat (@RequestBody ManyChatBo bo) {
+      manyChatService.addManyChat(bo);
+   }
+
+   @ApiOperation(value = "退出群聊", notes = "退出群聊")
+   @ApiImplicitParam(name = "manyChatId", value = "群聊id", required = true, dataType = "Long", paramType = "path")
+   @CrossOrigin
+   @CheckToken
+   @GetMapping("/exitManyChat")
+   public void exitManyChat (@RequestParam("manyChatId") Long manyChatId) {
+      manyChatService.exitManyChat(manyChatId);
    }
 }

@@ -1,4 +1,4 @@
-package com.dkm.entity.websocket;
+package com.dkm.entity.vo;
 
 import lombok.Data;
 
@@ -6,11 +6,11 @@ import java.util.List;
 
 /**
  * @author qf
- * @date 2020/4/2
+ * @date 2020/7/8
  * @vesion 1.0
  **/
 @Data
-public class MsgInfo {
+public class MsgFriends {
 
    /**
     * 消息内容
@@ -40,6 +40,7 @@ public class MsgInfo {
     * 102-通知退出登录  移除连接
     * 103-取消前端小红点
     * 104-建立群聊通知
+    * 105-成为好友通知
     */
    private Integer type;
 
@@ -47,11 +48,6 @@ public class MsgInfo {
     * 设备id
     */
    private String cid;
-
-   /**
-    * 群聊id
-    */
-   private Long manyChatId;
 
    /**
     * 1--文本
@@ -64,21 +60,4 @@ public class MsgInfo {
     * 发送时间
     */
    private String sendDate;
-
-   /**
-    * 发送Id的集合
-    */
-   private List<Long> toIdList;
-
-   /**
-    *  语音发送时长
-    */
-   private String sendTime;
-
-   /**
-    *  0--是好友
-    *  1--删除
-    *  2--拉黑
-    */
-   private Integer isFriend;
 }

@@ -25,5 +25,10 @@ public interface IManyChatInfoService {
     */
    List<ManyChatInfo> getManyChatInfoList(Long manyChatId);
 
-
+   /**
+    *  退出群聊
+    * @param userId 用户id
+    * @param manyChatId 群聊id
+    */
+   void deleteManyChatInfo (Long userId, Long manyChatId);
 }

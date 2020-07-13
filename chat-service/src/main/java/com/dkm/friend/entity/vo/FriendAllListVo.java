@@ -32,15 +32,4 @@ public class FriendAllListVo implements Serializable {
     * 好友备注
     */
    private String remark;
-
-   /**
-    * 成为好友时间
-    */
-   private String time;
-
-   /**
-    * 0--我加他
-    * 1--他加我
-    */
-   private Integer isAddStatus;
 }

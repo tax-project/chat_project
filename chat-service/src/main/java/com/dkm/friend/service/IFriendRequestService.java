@@ -29,8 +29,9 @@ public interface IFriendRequestService {
     * @param id 申请表id
     * @param fromId 谁加的我的id
     * @param type 0-同意  1-拒绝
+    * @param requestRemark 备注
     */
-   void operationFriendRequest (Long id, Long fromId, Integer type);
+   void operationFriendRequest (Long id, Long fromId, Integer type, String requestRemark);
 
    /**
     * 删除之前申请好友的信息

@@ -8,7 +8,7 @@
        select a.id, a.head_url, a.many_name, a.many_remark
        from tb_many_chat a
        join tb_many_chat_info b
-       on a.id = b.manyChatId where user_id = #{userId}
+       on a.id = b.many_chat_id where user_id = #{userId}
    </select>
 
 

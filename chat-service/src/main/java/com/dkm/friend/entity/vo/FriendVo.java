@@ -22,4 +22,9 @@ public class FriendVo implements Serializable {
     * 好友的用户id
     */
    private Long toId;
+
+   /**
+    * 备注
+    */
+   private String requestRemark;
 }

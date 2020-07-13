@@ -70,20 +70,22 @@ public class FriendRequestController {
    @ApiImplicitParams({
          @ApiImplicitParam(name = "id", value = "申请表id", required = true, dataType = "Long", paramType = "path"),
          @ApiImplicitParam(name = "fromId", value = "谁加的我的id", required = true, dataType = "Long", paramType = "path"),
-         @ApiImplicitParam(name = "type", value = "0-同意  1-拒绝", required = true, dataType = "int", paramType = "path")
+         @ApiImplicitParam(name = "type", value = "0-同意  1-拒绝", required = true, dataType = "int", paramType = "path"),
+         @ApiImplicitParam(name = "requestRemark", value = "申请好友时候的备注", required = true, dataType = "int", paramType = "path")
    })
    @GetMapping("/operationFriendRequest")
    @CrossOrigin
    @CheckToken
    public ResultVo operationFriendRequest (@RequestParam("id") Long id,
                                            @RequestParam("fromId") Long fromId,
-                                           @RequestParam("type") Integer type) {
+                                           @RequestParam("type") Integer type,
+                                           @RequestParam("requestRemark") String requestRemark) {
 
-      if (id == null || fromId == null || type == null) {
+      if (id == null || fromId == null || type == null || StringUtils.isBlank(requestRemark)) {
          throw new ApplicationException(CodeType.PARAMETER_ERROR, "参数不能为空");
       }
 
-      friendRequestService.operationFriendRequest(id,fromId,type);
+      friendRequestService.operationFriendRequest(id,fromId,type,requestRemark);
 
       ResultVo resultVo = new ResultVo();
       resultVo.setResult("ok");

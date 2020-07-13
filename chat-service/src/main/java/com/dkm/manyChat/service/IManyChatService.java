@@ -1,6 +1,7 @@
 package com.dkm.manyChat.service;
 
 import com.dkm.manyChat.entity.ManyChat;
+import com.dkm.manyChat.entity.bo.ManyChatBo;
 import com.dkm.manyChat.entity.vo.ManyChatListVo;
 import com.dkm.manyChat.entity.vo.ManyChatVo;
 
@@ -16,9 +17,8 @@ public interface IManyChatService {
    /**
     *  建立群聊
     * @param vo 建立群聊信息
-    * @return ---
     */
-   Long insertManyChat(ManyChatVo vo);
+   void insertManyChat(ManyChatVo vo);
 
    /**
     *  根据id查询群聊信息
@@ -34,6 +34,15 @@ public interface IManyChatService {
     */
    List<ManyChatListVo> queryManyChatList (Long userId);
 
-   //添加人进群
-   //退出群聊
+   /**
+    *  添加人进群
+    * @param bo 人员参数
+    */
+   void addManyChat (ManyChatBo bo);
+
+   /**
+    *  退出群聊
+    * @param manyChatId 群聊id
+    */
+   void exitManyChat (Long manyChatId);
 }

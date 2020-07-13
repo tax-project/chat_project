@@ -171,7 +171,7 @@ public class FriendRequestServiceImpl extends ServiceImpl<FriendRequestMapper, F
     * @param type 0-同意  1-拒绝
     */
    @Override
-   public void operationFriendRequest(Long id, Long fromId, Integer type) {
+   public void operationFriendRequest(Long id, Long fromId, Integer type, String requestRemark) {
 
       UserLoginQuery user = localUser.getUser();
 
@@ -209,6 +209,7 @@ public class FriendRequestServiceImpl extends ServiceImpl<FriendRequestMapper, F
             FriendVo vo = new FriendVo();
             vo.setFromId(fromId);
             vo.setToId(user.getId());
+            vo.setRequestRemark(requestRemark);
 
             friendService.insertFriend(vo);
             return;

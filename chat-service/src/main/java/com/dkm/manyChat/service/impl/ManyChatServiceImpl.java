@@ -12,6 +12,7 @@ import com.dkm.jwt.contain.LocalUser;
 import com.dkm.jwt.entity.UserLoginQuery;
 import com.dkm.manyChat.dao.ManyChatMapper;
 import com.dkm.manyChat.entity.ManyChat;
+import com.dkm.manyChat.entity.bo.ManyChatBo;
 import com.dkm.manyChat.entity.vo.ManyChatInfoVo;
 import com.dkm.manyChat.entity.vo.ManyChatListVo;
 import com.dkm.manyChat.entity.vo.ManyChatVo;
@@ -60,9 +61,10 @@ public class ManyChatServiceImpl extends ServiceImpl<ManyChatMapper, ManyChat> i
    private RabbitTemplate rabbitTemplate;
 
    @Override
-   @CacheEvict(value = "manyChat", key = "'manyChat' + #result")
-   public Long insertManyChat(ManyChatVo vo) {
+   public void insertManyChat(ManyChatVo vo) {
       ManyChat manyChat = new ManyChat();
+
+      UserLoginQuery local = localUser.getUser();
 
       //群聊id
       Long manyChatId = idGenerator.getNumberId();
@@ -82,14 +84,22 @@ public class ManyChatServiceImpl extends ServiceImpl<ManyChatMapper, ManyChat> i
       }
 
       List<ManyChatInfoVo> list = new ArrayList<>();
+      List<Long> longList = new ArrayList<>();
 
       for (Long userId : vo.getList()) {
+
+         if (userId == null) {
+            throw new ApplicationException(CodeType.PARAMETER_ERROR);
+         }
+
          ManyChatInfoVo infoVo = new ManyChatInfoVo();
          infoVo.setId(idGenerator.getNumberId());
          infoVo.setManyChatId(manyChatId);
          infoVo.setUserId(userId);
          infoVo.setRoleStatus(2);
          list.add(infoVo);
+
+         longList.add(userId);
       }
 
       UserLoginQuery user = localUser.getUser();
@@ -103,17 +113,24 @@ public class ManyChatServiceImpl extends ServiceImpl<ManyChatMapper, ManyChat> i
 
       manyChatInfoService.insertAllUser(list);
 
+     //添加自己
+      longList.add(local.getId());
+
       //通知客户端收到好友申请的通知
       MsgInfo msgInfo = new MsgInfo();
       msgInfo.setType(104);
       msgInfo.setFromId(user.getId());
-      msgInfo.setToIdList(vo.getList());
+      msgInfo.setToIdList(longList);
       msgInfo.setMsg("成功建立群聊,快聊天吧~");
+      msgInfo.setCid(null);
+      msgInfo.setSendDate(null);
+      msgInfo.setIsFriend(0);
+      msgInfo.setSendTime(null);
+      msgInfo.setMsgType(1);
+      msgInfo.setManyChatId(manyChatId);
 
       //将好友申请同步发送给好友
       rabbitTemplate.convertAndSend("chat_msg_fanoutExchange","", JSON.toJSONString(msgInfo));
-
-      return user.getId();
    }
 
    @Override
@@ -123,10 +140,39 @@ public class ManyChatServiceImpl extends ServiceImpl<ManyChatMapper, ManyChat> i
    }
 
    @Override
-   @Cacheable(value = "manyChat", key = "'manyChat' + #userId")
    public List<ManyChatListVo> queryManyChatList(Long userId) {
       //查询我的群聊
       return baseMapper.queryManyChatList(userId);
+   }
+
+   /**
+    *  拉人进群
+    * @param bo 人员参数
+    */
+   @Override
+   public void addManyChat(ManyChatBo bo) {
+
+      List<ManyChatInfoVo> list = new ArrayList<>();
+
+      for (Long userId : bo.getList()) {
+         ManyChatInfoVo infoVo = new ManyChatInfoVo();
+         infoVo.setId(idGenerator.getNumberId());
+         infoVo.setManyChatId(bo.getManyChatId());
+         infoVo.setUserId(userId);
+         infoVo.setRoleStatus(2);
+         list.add(infoVo);
+      }
+
+      manyChatInfoService.insertAllUser(list);
+   }
+
+   @Override
+   public void exitManyChat(Long manyChatId) {
+
+      UserLoginQuery user = localUser.getUser();
+
+      //退出群聊
+      manyChatInfoService.deleteManyChatInfo(user.getId(), manyChatId);
    }
 
 

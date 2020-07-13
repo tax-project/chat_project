@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.dkm.config.RedisConfig;
 import com.dkm.entity.websocket.MsgInfo;
+import com.dkm.friend.entity.Friend;
+import com.dkm.friend.service.IFriendService;
 import com.dkm.listener.vo.ChatVo;
 import com.dkm.manyChat.entity.ManyChat;
 import com.dkm.manyChat.entity.ManyChatInfo;
@@ -45,10 +47,7 @@ public class MqListener {
    private IManyChatInfoService manyChatInfoService;
 
    @Autowired
-   private IUserService userService;
-
-   @Autowired
-   private IManyChatService manyChatService;
+   private IFriendService friendService;
 
    @RabbitHandler
    public void msg (@Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag, String msgInfo, Channel channel) {
@@ -64,28 +63,16 @@ public class MqListener {
          e.printStackTrace();
       }
 
-      ChatVo vo = new ChatVo();
-
-      //查询用户详细信息
-      if (info.getToId() != null) {
+      if (info.getType() == 3) {
          //单聊消息
-         User user = userService.queryUserById(info.getToId());
-         vo.setChatName(user.getNickName());
-         vo.setHeadUrl(user.getHeadUrl());
-         vo.setId(user.getId());
-         vo.setMsg(info.getMsg());
-         vo.setDate(DateUtil.formatDateTime(LocalDateTime.now()));
-      }
+         info.setIsFriend(0);
+         Friend friend = friendService.queryOne(info.getFromId(), info.getToId());
 
-      if (info.getManyChatId() != null) {
-         //群聊消息
-         ManyChat manyChat = manyChatService.queryById(info.getManyChatId());
-         vo.setMsg(info.getMsg());
-         vo.setId(manyChat.getId());
-         vo.setChatName(manyChat.getManyName());
-         vo.setDate(DateUtil.formatDateTime(LocalDateTime.now()));
-         //头像
-         vo.setHeadUrl(manyChat.getHeadUrl());
+         if (friend == null) {
+            info.setType(105);
+            //拦截返回不是好友的消息
+            info.setIsFriend(1);
+         }
       }
 
       if (info.getType() == 4) {
@@ -94,17 +81,19 @@ public class MqListener {
          if (info.getManyChatId() != null) {
             List<ManyChatInfo> list = manyChatInfoService.getManyChatInfoList(info.getManyChatId());
             for (ManyChatInfo chatInfo : list) {
-               longList.add(chatInfo.getUserId());
+               if (!info.getFromId().equals(chatInfo.getUserId())) {
+                  //去除自己之外的所有人接收的信息
+                  longList.add(chatInfo.getUserId());
+               }
             }
             info.setToIdList(longList);
          }
-         msgInfo = JSON.toJSONString(info);
       }
 
       //将消息传给客户端
       //此处也要重新申明交换机，不然生产者找不到交换机
       //广播形式发给所有服务器
-      rabbitTemplate.convertAndSend("chat_msg_fanoutExchange","",msgInfo);
+      rabbitTemplate.convertAndSend("chat_msg_fanoutExchange","",JSON.toJSONString(info));
 
       //确认消息
       try {
