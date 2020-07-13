@@ -62,7 +62,7 @@ public class GroupUtils {
 
       for (Map.Entry<String, Channel> entry : new HashSet<>(entries)) {
          if(entry.getValue() == channel){
-            entries.remove(entry.getKey());
+            map.remove(entry.getKey());
          }
       }
 
