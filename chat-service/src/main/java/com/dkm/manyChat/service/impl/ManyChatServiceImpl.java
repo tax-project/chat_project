@@ -137,7 +137,6 @@ public class ManyChatServiceImpl extends ServiceImpl<ManyChatMapper, ManyChat> i
    }
 
    @Override
-   @Cacheable(value = "manyChatInfo", key = "'manyChatInfo' + #id")
    public ManyChat queryById(Long id) {
       return baseMapper.selectById(id);
    }
