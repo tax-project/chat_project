@@ -6,11 +6,16 @@ import com.dkm.jwt.contain.LocalUser;
 import com.dkm.jwt.entity.UserLoginQuery;
 import com.dkm.jwt.islogin.CheckToken;
 import com.dkm.manyChat.entity.ManyChat;
+import com.dkm.manyChat.entity.ManyChatInfo;
 import com.dkm.manyChat.entity.bo.ManyChatBo;
+import com.dkm.manyChat.entity.bo.ManyChatInfoBO;
+import com.dkm.manyChat.entity.bo.ManyChatUpdateBO;
 import com.dkm.manyChat.entity.vo.ManyChatListVo;
 import com.dkm.manyChat.entity.vo.ManyChatResultVo;
 import com.dkm.manyChat.entity.vo.ManyChatVo;
+import com.dkm.manyChat.service.IManyChatInfoService;
 import com.dkm.manyChat.service.IManyChatService;
+import com.dkm.manyChat.vilidata.ControllerUtils;
 import com.dkm.user.entity.vo.ResultVo;
 import com.dkm.utils.DateUtil;
 import com.dkm.utils.StringUtils;
@@ -38,6 +43,9 @@ public class ManyChatController {
 
    @Autowired
    private IManyChatService manyChatService;
+
+   @Autowired
+   private ControllerUtils handelService;
 
    @Autowired
    private LocalUser localUser;
@@ -71,19 +79,10 @@ public class ManyChatController {
    @CheckToken
    @GetMapping("/queryById")
    public ManyChatResultVo queryById (@RequestParam("id") Long id) {
-
       if (id == null) {
          throw new ApplicationException(CodeType.PARAMETER_ERROR);
       }
-
-      ManyChatResultVo vo = new ManyChatResultVo();
-
-      ManyChat manyChat = manyChatService.queryById(id);
-
-      BeanUtils.copyProperties(manyChat, vo);
-      vo.setCreateDate(DateUtil.formatDateTime(manyChat.getCreateDate()));
-
-      return vo;
+      return handelService.getResult(id);
    }
 
    @ApiOperation(value = "查询我的群聊", notes = "查询我的群聊")
@@ -110,5 +109,31 @@ public class ManyChatController {
    @GetMapping("/exitManyChat")
    public void exitManyChat (@RequestParam("manyChatId") Long manyChatId) {
       manyChatService.exitManyChat(manyChatId);
+   }
+
+   @ApiOperation(value = "修改群资料", notes = "修改群资料")
+   @ApiImplicitParams({
+         @ApiImplicitParam(name = "id", value = "id", required = true, dataType = "Long", paramType = "path"),
+         @ApiImplicitParam(name = "headUrl", value = "群聊头像(只有管理员或群主才可以修改)", required = false, dataType = "String", paramType = "path"),
+         @ApiImplicitParam(name = "manyName", value = "群聊名字", required = false, dataType = "String", paramType = "path"),
+         @ApiImplicitParam(name = "manyRemark", value = "群聊备注(只有管理员或群主才可以修改)", required = false, dataType = "String", paramType = "path"),
+         @ApiImplicitParam(name = "manyNotice", value = "群聊公告(只有管理员或群主才可以修改)", required = false, dataType = "String", paramType = "path"),
+   })
+   @CrossOrigin
+   @CheckToken
+   @PostMapping("/updateManyChat")
+   public void updateManyChat (@RequestBody ManyChatUpdateBO manyChatUpdateBO) {
+
+      if (manyChatUpdateBO.getId() == null) {
+         throw new ApplicationException(CodeType.PARAMETER_ERROR, "群聊id不能为空");
+      }
+
+      if (StringUtils.isBlank(manyChatUpdateBO.getManyRemark()) && StringUtils.isBlank(manyChatUpdateBO.getManyNotice())
+      && StringUtils.isBlank(manyChatUpdateBO.getManyName()) && StringUtils.isBlank(manyChatUpdateBO.getHeadUrl())) {
+         log.info("update param all is null.");
+         return;
+      }
+
+      manyChatService.updateManyChat(manyChatUpdateBO);
    }
 }

@@ -81,10 +81,7 @@ public class MqListener {
          if (info.getManyChatId() != null) {
             List<ManyChatInfo> list = manyChatInfoService.getManyChatInfoList(info.getManyChatId());
             for (ManyChatInfo chatInfo : list) {
-               if (!info.getFromId().equals(chatInfo.getUserId())) {
-                  //去除自己之外的所有人接收的信息
-                  longList.add(chatInfo.getUserId());
-               }
+               longList.add(chatInfo.getUserId());
             }
             info.setToIdList(longList);
          }

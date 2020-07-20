@@ -2,6 +2,7 @@ package com.dkm.manyChat.service;
 
 import com.dkm.manyChat.entity.ManyChat;
 import com.dkm.manyChat.entity.bo.ManyChatBo;
+import com.dkm.manyChat.entity.bo.ManyChatUpdateBO;
 import com.dkm.manyChat.entity.vo.ManyChatListVo;
 import com.dkm.manyChat.entity.vo.ManyChatVo;
 
@@ -45,4 +46,10 @@ public interface IManyChatService {
     * @param manyChatId 群聊id
     */
    void exitManyChat (Long manyChatId);
+
+   /**
+    *  修改群资料
+    * @param manyChatUpdateBO 要修改的群信息
+    */
+   void updateManyChat (ManyChatUpdateBO manyChatUpdateBO);
 }

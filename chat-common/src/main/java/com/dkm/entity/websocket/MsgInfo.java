@@ -23,6 +23,11 @@ public class MsgInfo {
    private Long fromId;
 
    /**
+    *  发送人名字
+    */
+   private String fromName;
+
+   /**
     * 发给谁
     */
    private Long toId;

@@ -1,6 +1,9 @@
 package com.dkm.manyChat.entity.vo;
 
+import com.dkm.manyChat.entity.bo.ManyChatInfoBO;
 import lombok.Data;
+
+import java.util.List;
 
 
 /**
@@ -42,4 +45,9 @@ public class ManyChatResultVo {
     * 创建时间
     */
    private String createDate;
+
+   /**
+    *  群聊人员集合
+    */
+   private List<ManyChatInfoBO> list;
 }

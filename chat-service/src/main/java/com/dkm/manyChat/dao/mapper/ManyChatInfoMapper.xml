@@ -11,5 +11,10 @@
         </foreach>
     </insert>
 
-
+    <select id="getManyInfoAllList" parameterType="Long" resultType="com.dkm.manyChat.entity.bo.ManyChatInfoBO">
+        select a.user_id, b.head_url,b.nick_name,a.many_role_status,a.many_nick_remark
+        from tb_many_chat_info a
+        join tb_user b on a.user_id = b.id
+        where a.many_chat_id = #{manyChatId}
+    </select>
 </mapper>

@@ -4,17 +4,22 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dkm.constanct.CodeType;
 import com.dkm.exception.ApplicationException;
+import com.dkm.jwt.contain.LocalUser;
+import com.dkm.jwt.entity.UserLoginQuery;
 import com.dkm.manyChat.dao.ManyChatInfoMapper;
 import com.dkm.manyChat.entity.ManyChat;
 import com.dkm.manyChat.entity.ManyChatInfo;
+import com.dkm.manyChat.entity.bo.ManyChatInfoBO;
 import com.dkm.manyChat.entity.vo.ManyChatInfoVo;
 import com.dkm.manyChat.service.IManyChatInfoService;
 import com.sun.org.apache.bcel.internal.generic.NEW;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -28,6 +33,8 @@ import java.util.List;
 public class ManyChatInfoServiceImpl extends ServiceImpl<ManyChatInfoMapper, ManyChatInfo> implements IManyChatInfoService {
 
 
+   @Autowired
+   private LocalUser localUser;
 
    /**
     *  建立群聊的具体群员
@@ -63,6 +70,53 @@ public class ManyChatInfoServiceImpl extends ServiceImpl<ManyChatInfoMapper, Man
 
       if (delete <= 0) {
          throw new ApplicationException(CodeType.SERVICE_ERROR, "退出失败");
+      }
+   }
+
+   @Override
+   public List<ManyChatInfoBO> getManyInfoAllList(Long manyChatId) {
+      return baseMapper.getManyInfoAllList(manyChatId);
+   }
+
+   @Override
+   public void updateAdmin(Long userId, Long manyChatId) {
+      UserLoginQuery user = localUser.getUser();
+
+      List<ManyChatInfo> list = getManyChatInfoList(manyChatId);
+
+      Integer status = 2;
+
+      List<Integer> integerList = new ArrayList<>();
+
+      for (ManyChatInfo manyChatInfo : list) {
+         if (manyChatInfo.getUserId().equals(user.getId())) {
+            status = manyChatInfo.getManyRoleStatus();
+         }
+
+         if (manyChatInfo.getManyRoleStatus() == 1) {
+            integerList.add(1);
+         }
+      }
+
+      if (status != 0) {
+         throw new ApplicationException(CodeType.SERVICE_ERROR, "只有群主才能设置");
+      }
+
+      if (integerList.size() >= 5) {
+         //每个群不超过5个管理员
+         throw new ApplicationException(CodeType.SERVICE_ERROR, "每个群不超过5个管理员");
+      }
+
+      LambdaQueryWrapper<ManyChatInfo> wrapper = new LambdaQueryWrapper<ManyChatInfo>()
+            .eq(ManyChatInfo::getUserId,userId)
+            .eq(ManyChatInfo::getManyChatId,manyChatId);
+
+      ManyChatInfo manyChatInfo = new ManyChatInfo();
+      manyChatInfo.setManyRoleStatus(1);
+      int update = baseMapper.update(manyChatInfo, wrapper);
+
+      if (update <= 0) {
+         throw new ApplicationException(CodeType.SERVICE_ERROR, "修改失败");
       }
    }
 }

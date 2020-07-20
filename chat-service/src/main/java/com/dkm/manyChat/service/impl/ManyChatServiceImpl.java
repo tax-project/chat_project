@@ -12,13 +12,16 @@ import com.dkm.jwt.contain.LocalUser;
 import com.dkm.jwt.entity.UserLoginQuery;
 import com.dkm.manyChat.dao.ManyChatMapper;
 import com.dkm.manyChat.entity.ManyChat;
+import com.dkm.manyChat.entity.ManyChatInfo;
 import com.dkm.manyChat.entity.bo.ManyChatBo;
+import com.dkm.manyChat.entity.bo.ManyChatUpdateBO;
 import com.dkm.manyChat.entity.vo.ManyChatInfoVo;
 import com.dkm.manyChat.entity.vo.ManyChatListVo;
 import com.dkm.manyChat.entity.vo.ManyChatVo;
 import com.dkm.manyChat.service.IManyChatInfoService;
 import com.dkm.manyChat.service.IManyChatService;
 import com.dkm.utils.IdGenerator;
+import com.dkm.utils.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -152,6 +155,9 @@ public class ManyChatServiceImpl extends ServiceImpl<ManyChatMapper, ManyChat> i
    @Override
    public void addManyChat(ManyChatBo bo) {
 
+      UserLoginQuery user = localUser.getUser();
+      MsgInfo msgInfo = new MsgInfo();
+
       List<ManyChatInfoVo> list = new ArrayList<>();
 
       for (Long userId : bo.getList()) {
@@ -164,6 +170,21 @@ public class ManyChatServiceImpl extends ServiceImpl<ManyChatMapper, ManyChat> i
       }
 
       manyChatInfoService.insertAllUser(list);
+
+      //添加通知
+      msgInfo.setType(104);
+      msgInfo.setFromId(user.getId());
+      msgInfo.setToIdList(bo.getList());
+      msgInfo.setMsg("成功建立群聊,快聊天吧~");
+      msgInfo.setCid(null);
+      msgInfo.setSendDate(null);
+      msgInfo.setIsFriend(0);
+      msgInfo.setSendTime(null);
+      msgInfo.setMsgType(1);
+      msgInfo.setManyChatId(bo.getManyChatId());
+
+      //将好友申请同步发送给好友
+      rabbitTemplate.convertAndSend("chat_msg_fanoutExchange","", JSON.toJSONString(msgInfo));
    }
 
    @Override
@@ -173,6 +194,58 @@ public class ManyChatServiceImpl extends ServiceImpl<ManyChatMapper, ManyChat> i
 
       //退出群聊
       manyChatInfoService.deleteManyChatInfo(user.getId(), manyChatId);
+   }
+
+   @Override
+   public void updateManyChat(ManyChatUpdateBO manyChatUpdateBO) {
+
+      UserLoginQuery user = localUser.getUser();
+      //查询群聊具体人员是否是管理员
+      List<ManyChatInfo> list = manyChatInfoService.getManyChatInfoList(manyChatUpdateBO.getId());
+
+      Integer status = 2;
+
+      for (ManyChatInfo manyChatInfo : list) {
+         if (manyChatInfo.getUserId().equals(user.getId())) {
+            status = manyChatInfo.getManyRoleStatus();
+         }
+      }
+
+      ManyChat manyChat = new ManyChat();
+
+      manyChat.setId(manyChatUpdateBO.getId());
+
+      if (StringUtils.isNotBlank((manyChatUpdateBO.getHeadUrl()))) {
+         if (status == 2) {
+            throw new ApplicationException(CodeType.SERVICE_ERROR, "您不是管理员或群主不能修改");
+         }
+         manyChat.setHeadUrl(manyChatUpdateBO.getHeadUrl());
+      }
+
+      if (StringUtils.isNotBlank(manyChatUpdateBO.getManyName())) {
+         manyChat.setManyName(manyChatUpdateBO.getManyName());
+      }
+
+      if (StringUtils.isNotBlank(manyChatUpdateBO.getManyNotice())) {
+         if (status == 2) {
+            throw new ApplicationException(CodeType.SERVICE_ERROR, "您不是管理员或群主不能修改");
+         }
+         manyChat.setManyNotice(manyChatUpdateBO.getManyNotice());
+      }
+
+      if (StringUtils.isNotBlank(manyChatUpdateBO.getManyRemark())) {
+         if (status == 2) {
+            throw new ApplicationException(CodeType.SERVICE_ERROR, "您不是管理员或群主不能修改");
+         }
+         manyChat.setManyRemark(manyChatUpdateBO.getManyRemark());
+      }
+
+      int updateById = baseMapper.updateById(manyChat);
+
+      if (updateById <= 0) {
+         log.info("update manyChat fail.");
+         throw new ApplicationException(CodeType.SERVICE_ERROR);
+      }
    }
 
 

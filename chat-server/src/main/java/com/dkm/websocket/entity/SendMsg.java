@@ -21,6 +21,11 @@ public class SendMsg {
    private Long fromId;
 
    /**
+    * 发送人名字
+    */
+   private String fromName;
+
+   /**
     * 发给谁
     */
    private Long toId;
@@ -55,4 +60,9 @@ public class SendMsg {
     * 发送时间
     */
    private String sendDate;
+
+   /**
+    *  语音发送时长
+    */
+   private String sendTime;
 }
