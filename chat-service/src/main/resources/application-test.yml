@@ -1,11 +1,11 @@
 spring:
   datasource:
-    url: jdbc:mysql://192.168.10.133:3306/dkm_chat?useUnicode=true&useSSL=false&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://192.168.10.254:3306/dkm_chat?useUnicode=true&useSSL=false&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
     username: root
     password: kgdatj1110
     driver-class-name: com.mysql.cj.jdbc.Driver
   rabbitmq:
-    host: 192.168.10.133
+    host: 192.168.10.254
     username: guest
     password: guest
     port: 5672
@@ -16,7 +16,7 @@ spring:
       simple:
         acknowledge-mode: manual
   redis:
-    host: 192.168.10.133
+    host: 192.168.10.254
     timeout: 2000
     jedis:
       pool:
@@ -27,11 +27,11 @@ spring:
 
 # 图片上传地址
 file:
-  url: http://192.168.10.133:20000/chat/img
+  url: http://192.168.10.254:20000/chat/img
   localUrl: http://192.168.10.93:20000/img/
     #  前端地址   二维码地址  跳转到搜索好友页面
   qrCodeUrl: http://www.baidu.com
   # 默认头像地址
-  heardUrl: http://192.168.10.133:20000/chat/img/2020.jpg
-  womanHeardUrl: http://192.168.10.133:20000/chat/img/2020.jpg
+  heardUrl: http://192.168.10.254:20000/chat/img/2020.jpg
+  womanHeardUrl: http://192.168.10.254:20000/chat/img/2020.jpg
 

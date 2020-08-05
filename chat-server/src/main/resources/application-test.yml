@@ -1,6 +1,6 @@
 spring:
   rabbitmq:
-    host: 192.168.10.133
+    host: 192.168.10.254
     username: guest
     password: guest
     port: 5672
@@ -11,7 +11,7 @@ spring:
       simple:
         acknowledge-mode: manual
   redis:
-    host: 192.168.10.133
+    host: 192.168.10.254
     timeout: 2000
     jedis:
       pool:
