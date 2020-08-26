@@ -23,7 +23,7 @@ public class CreateToken {
       query.setUserName(user.getUserName());
 
       //24小时过期时间 * 30天
-      return jwtUtil.createJWT(1000 * 60 * 60 * 24 * 30L, query);
+      return jwtUtil.createJwt(query);
    }
 
 
