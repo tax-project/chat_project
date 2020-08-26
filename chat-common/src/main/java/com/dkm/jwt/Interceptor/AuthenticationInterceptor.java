@@ -33,6 +33,8 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
 
     private String userId = "id";
 
+    private String key = "Svpu9MogFMk4NRpN1ZMrJNaXAOckyGegdWDDimoGuFYo";
+
     @Override
     public boolean preHandle(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object object) throws Exception {
 
@@ -93,7 +95,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
             }
 
             //去掉过期时间
-//                return expDate (token, query);
+//            return expDate (token);
         }
         return true;
     }
@@ -113,10 +115,10 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
         return query;
     }
 
-    private Boolean expDate (String token, UserLoginQuery query) {
+    private Boolean expDate (String token) {
         //获得解密后claims对象
         Date date = new Date();
-        String key = getKey(query);
+        String key = getKey();
         Claims jwt = getClaims(token,key);
 
         String audience = jwt.getAudience();
@@ -132,7 +134,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
 
     private Boolean isVerify(String token, UserLoginQuery user) {
         //签名秘钥，和生成的签名的秘钥一模一样
-        String key = getKey(user);
+        String key = getKey();
 
         //得到DefaultJwtParser
         Claims claims = getClaims (token, key);
@@ -160,13 +162,11 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
         return claims;
     }
 
-    private String getKey (UserLoginQuery query) {
-        Long id = query.getId();
-
-        if (id == null) {
-            throw new ApplicationException(CodeType.OVENDU_ERROR,"token有误，请重新登录");
-        }
-
-        return id.toString();
+    /**
+     *  得到密钥
+     * @return 返回密钥
+     */
+    private String getKey () {
+        return key;
     }
 }

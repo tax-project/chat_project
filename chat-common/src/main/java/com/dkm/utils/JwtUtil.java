@@ -22,6 +22,9 @@ import java.util.UUID;
 @Component
 public class JwtUtil {
 
+
+    private String key = "Svpu9MogFMk4NRpN1ZMrJNaXAOckyGegdWDDimoGuFYo";
+
     /**
      * 用户登录成功后生成Jwt
      * 使用Hs256算法
@@ -48,7 +51,6 @@ public class JwtUtil {
         claims.put("userName", user.getUserName());
 
         //生成签名的时候使用的秘钥secret,这个方法本地封装了的，一般可以从本地配置文件中读取，切记这个秘钥不能外露哦。它就是你服务端的私钥，在任何场景都不应该流露出去。一旦客户端得知这个secret, 那就意味着客户端是可以自我签发jwt了。
-        String key = user.getId().toString();
         //生成签发人
         String subject = user.getUserName();
 
@@ -80,7 +82,6 @@ public class JwtUtil {
         claims.put("userName", user.getUserName());
 
         //生成签名的时候使用的秘钥secret,这个方法本地封装了的，一般可以从本地配置文件中读取，切记这个秘钥不能外露哦。它就是你服务端的私钥，在任何场景都不应该流露出去。一旦客户端得知这个secret, 那就意味着客户端是可以自我签发jwt了。
-        String key = user.getId().toString();
         //生成签发人
         String subject = user.getUserName();
 
@@ -92,7 +93,7 @@ public class JwtUtil {
     }
 
 
-    private static JwtBuilder getJwtBuilder (Map<String, Object> claims, Date now, String subject, SignatureAlgorithm signatureAlgorithm, String key) {
+    private JwtBuilder getJwtBuilder (Map<String, Object> claims, Date now, String subject, SignatureAlgorithm signatureAlgorithm, String key) {
         return Jwts.builder()
               //如果有私有声明，一定要先设置这个自己创建的私有的声明，这个是给builder的claim赋值，一旦写在标准的声明赋值之后，就是覆盖了那些标准的声明的
               .setClaims(claims)
@@ -106,7 +107,7 @@ public class JwtUtil {
               .signWith(signatureAlgorithm, key);
     }
 
-    private static void setExpDate (Long nowMillis,Long ttlMillis, JwtBuilder builder) {
+    private void setExpDate (Long nowMillis,Long ttlMillis, JwtBuilder builder) {
         Long expMillis = nowMillis + ttlMillis;
         String exp = expMillis.toString();
         //设置过期时间
