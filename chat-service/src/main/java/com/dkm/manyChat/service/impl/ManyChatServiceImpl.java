@@ -187,7 +187,7 @@ public class ManyChatServiceImpl extends ServiceImpl<ManyChatMapper, ManyChat> i
       msgInfo.setType(104);
       msgInfo.setFromId(user.getId());
       msgInfo.setToIdList(bo.getList());
-      msgInfo.setMsg("成功建立群聊,快聊天吧~");
+      msgInfo.setMsg("加入了群聊");
       msgInfo.setCid(null);
       msgInfo.setSendDate(null);
       msgInfo.setIsFriend(0);
