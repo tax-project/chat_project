@@ -16,16 +16,12 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class LocalUser {
 
-
-    private Map<String,Object> map = new ConcurrentHashMap<>();
-
-
     /**
      * 从token获得用户信息
      * @return
      */
     public void setUser (UserLoginQuery vo) {
-        map.put("user",vo);
+        ThreadLocalMap.set(vo);
     }
 
 
@@ -34,7 +30,8 @@ public class LocalUser {
      * @return
      */
     public UserLoginQuery getUser () {
-        UserLoginQuery result = (UserLoginQuery) map.get("user");
-        return result;
+        UserLoginQuery query = ThreadLocalMap.get();
+        ThreadLocalMap.remove();
+        return query;
     }
 }

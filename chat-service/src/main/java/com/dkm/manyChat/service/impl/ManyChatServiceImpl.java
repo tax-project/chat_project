@@ -107,12 +107,10 @@ public class ManyChatServiceImpl extends ServiceImpl<ManyChatMapper, ManyChat> i
          longList.add(userId);
       }
 
-      UserLoginQuery user = localUser.getUser();
-
       ManyChatInfoVo infoVo = new ManyChatInfoVo();
       infoVo.setId(idGenerator.getNumberId());
       infoVo.setManyChatId(manyChatId);
-      infoVo.setUserId(user.getId());
+      infoVo.setUserId(local.getId());
       infoVo.setRoleStatus(0);
       list.add(infoVo);
 
@@ -124,7 +122,7 @@ public class ManyChatServiceImpl extends ServiceImpl<ManyChatMapper, ManyChat> i
       //通知客户端收到好友申请的通知
       MsgInfo msgInfo = new MsgInfo();
       msgInfo.setType(104);
-      msgInfo.setFromId(user.getId());
+      msgInfo.setFromId(local.getId());
       msgInfo.setToIdList(longList);
       msgInfo.setMsg("成功建立群聊,快聊天吧~");
       msgInfo.setCid(null);

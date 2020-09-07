@@ -150,7 +150,7 @@ public class UserController {
       if (StringUtils.isBlank(heardUrl)) {
          throw new ApplicationException(CodeType.PARAMETER_ERROR);
       }
-      Long aLong = userService.updateHeardUrl(heardUrl);
+      userService.updateHeardUrl(heardUrl);
    }
 
 
