@@ -12,6 +12,6 @@ import java.lang.annotation.Target;
  * @vesion 1.0
  **/
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE})
+@Target({ElementType.TYPE, ElementType.METHOD})
 public @interface IsBean {
 }

@@ -1,5 +1,6 @@
 package com.dkm.manyChat.controller;
 
+import com.dkm.aop.IsBean;
 import com.dkm.constanct.CodeType;
 import com.dkm.exception.ApplicationException;
 import com.dkm.jwt.contain.LocalUser;

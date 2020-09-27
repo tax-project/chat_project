@@ -92,7 +92,7 @@ public enum CodeType {
         this.code = code;
     }
 
-        public String getMsg(){
+    public String getMsg(){
         return msg;
     }
 

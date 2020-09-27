@@ -12,6 +12,7 @@ import com.dkm.utils.StringUtils;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -26,6 +27,7 @@ import java.util.Date;
  * @Date 2019/9/24
  * @Version 1.0
  */
+@Component
 public class AuthenticationInterceptor implements HandlerInterceptor {
 
     @Autowired

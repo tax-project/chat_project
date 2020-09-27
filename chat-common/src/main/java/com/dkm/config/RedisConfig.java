@@ -98,7 +98,10 @@ public class RedisConfig {
     */
    public Boolean redisLock (String lock) {
       RedisConnection connection = redisTemplate.getConnectionFactory().getConnection();
-      return connection.set(lock.getBytes(), lock.getBytes(), Expiration.seconds(5), RedisStringCommands.SetOption.SET_IF_ABSENT);
+      return connection.set(lock.getBytes(),
+            lock.getBytes(),
+            Expiration.seconds(5),
+            RedisStringCommands.SetOption.SET_IF_ABSENT);
 //      Boolean aBoolean = connection.setNX(lock.getBytes(), lock.getBytes());
 //      connection.expire(lock.getBytes(),10);
 //      return aBoolean;
