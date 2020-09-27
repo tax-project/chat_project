@@ -1,17 +1,14 @@
 package com.dkm.jwt.islogin;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
  * @Author qf
  * @Date 2019/9/24
  * @Version 1.0
  */
-@Target({ElementType.METHOD,ElementType.TYPE})
+@Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
+@Documented
 public @interface CheckToken {
-    boolean required() default true;
 }

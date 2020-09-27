@@ -52,7 +52,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
         //检查有没有需要用户权限的注解
         if (method.isAnnotationPresent(CheckToken.class)) {
             String token = getToken(httpServletRequest);
-            return checkAuthorizationToken(method, token);
+            return checkAuthorizationToken(token);
         }
 
         return true;
@@ -81,24 +81,21 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
         return false;
     }
 
-    private Boolean checkAuthorizationToken (Method method, String token) {
-        CheckToken checkToken = method.getAnnotation(CheckToken.class);
-        if (checkToken.required()) {
-            // 执行认证
-            if (StringUtils.isBlank(token)) {
-                throw new ApplicationException(CodeType.OVENDU_ERROR,"token 为空");
-            }
-
-            UserLoginQuery query = getUserInfo(token);
-
-            Boolean verify = isVerify(token, query);
-            if (!verify) {
-                throw new ApplicationException(CodeType.OVENDU_ERROR, "身份验证失败");
-            }
-
-            //去掉过期时间
-//            return expDate (token);
+    private Boolean checkAuthorizationToken (String token) {
+        // 执行认证
+        if (StringUtils.isBlank(token)) {
+            throw new ApplicationException(CodeType.OVENDU_ERROR,"token 为空");
         }
+
+        UserLoginQuery query = getUserInfo(token);
+
+        Boolean verify = isVerify(token, query);
+        if (!verify) {
+            throw new ApplicationException(CodeType.OVENDU_ERROR, "身份验证失败");
+        }
+
+        //去掉过期时间
+//      return expDate (token);
         return true;
     }
 
