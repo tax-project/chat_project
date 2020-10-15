@@ -146,7 +146,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
       User user = baseMapper.selectOne(wrapper);
 
       if (user == null) {
-         throw new ApplicationException(CodeType.SERVICE_ERROR, "您输入的用户名有误");
+         throw new ApplicationException(CodeType.SERVICE_ERROR, "该账号不存在");
       }
 
       if (!ShaUtils.getSha1(password).equals(user.getPassword())) {
@@ -156,44 +156,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
       //判断该账号是否已经登录，如果已经登录，则强行挤下线
       //先去未在线消息表中查询是否有未在线消息，若有，则不在线，并且将未在线消息发送给客户端
-      List<FriendNotOnlineVo> list = friendNotOnlineService.queryOne(user.getId());
+      //没有离线消息,
+      //去redis中查询是否有cid,若是有，则先通知服务器强制下线，同时修改redis中的cid
+      String cid = (String) redisTemplate.opsForValue().get(user.getId());
 
-      if (null != list && list.size() != 0) {
-         //有离线消息,当前该账号未在线，将未在线消息发送给客户端
-//         List<Long> longList = new ArrayList<>();
-//         for (FriendNotOnlineVo onlineVo : list) {
-//            MsgInfo msgInfo = new MsgInfo();
-//            msgInfo.setFromId(onlineVo.getFromId());
-//            msgInfo.setToId(onlineVo.getToId());
-//            msgInfo.setMsg(onlineVo.getContent());
-//            msgInfo.setSendDate(onlineVo.getCreateDate());
-//            //离线信息
-//            msgInfo.setType(onlineVo.getType());
-//            //将消息更改成已读
-//            longList.add(onlineVo.getToId());
-//            rabbitTemplate.convertAndSend("chat_msg_fanoutExchange","",JSON.toJSONString(msgInfo));
-//         }
-//
-//         //删除离线表中的未读状态
-//         friendNotOnlineService.deleteLook(longList);
-
-      } else {
-         //没有离线消息,
-         //去redis中查询是否有cid,若是有，则先通知服务器强制下线，同时修改redis中的cid
-         String cid = (String) redisTemplate.opsForValue().get(user.getId());
-
-         if (StringUtils.isNotBlank(cid)) {
-            //找到设备编号发给客户端强制下线
-            MsgInfo msgInfo = new MsgInfo();
-            msgInfo.setType(100);
-            msgInfo.setCid(cid);
-            rabbitTemplate.convertAndSend("chat_msg_fanoutExchange","",JSON.toJSONString(msgInfo));
-         }
-
+      if (StringUtils.isNotBlank(cid)) {
+         //找到设备编号发给客户端强制下线
+         MsgInfo msgInfo = new MsgInfo();
+         msgInfo.setType(100);
+         msgInfo.setCid(cid);
+         rabbitTemplate.convertAndSend("chat_msg_fanoutExchange","",JSON.toJSONString(msgInfo));
       }
       //将用户Id和cid绑定存入redis中返回token以及一些必要的信息给前端
-      String cid = idGenerator.getUuid();
-      redisTemplate.opsForValue().set(user.getId(),cid);
+      String cId = idGenerator.getUuid();
+      redisTemplate.opsForValue().set(user.getId(),cId);
 
       //生成token
       String token = createToken.getToken(user);
